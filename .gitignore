@@ -1,0 +1,4 @@
+# Liste des fichiers et dossiers à ignorer par Git
+index.php
+deploy.zip
+deploy_site/
