@@ -18,13 +18,20 @@ echo "========================================================="
 echo "Deployment of the App Service : ${APP_NAME}"
 echo "========================================================="
 
+# Check if the app service already exists
+if az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" > /dev/null 2>&1; then
+    echo "✅ App service '$APP_NAME' already exists in resource group '$RESOURCE_GROUP'."
+    exit 0
+fi
+
 # App Service creation
 echo "Creating the Web application on Azure..."
 az webapp create \
     --resource-group "$RESOURCE_GROUP" \
     --plan "$APP_SERVICE_PLAN" \
     --name "$APP_NAME" \
-    --runtime "$RUNTIME"
+    --runtime "$RUNTIME" \
+    --tags "$TAGS"
 
 # Activation of SCM Basic Auth Publishing Credentials
 echo "Activation of SCM Basic Auth..."
