@@ -38,20 +38,105 @@ until az storage account show --name "$STORAGE_ACCOUNT_NAME" --resource-group "$
 done
 echo "Storage account '$STORAGE_ACCOUNT_NAME' is ready."
 
+# Retrieving the App Service Plan ID using the exact path
+APP_PLAN=$(az appservice plan show \
+  --name           "$APP_PLAN_NAME" \
+  --resource-group "$RG_SHARED" \
+  --query          "id" -o tsv)
+echo "App Service Plan ID: $APP_PLAN"
 
 # Function App creation
 echo "Creating the Function application on Azure..."
-az functionapp create \
+MSYS_NO_PATHCONV=1 az functionapp create \
     --resource-group "$RESOURCE_GROUP" \
     --storage-account "$STORAGE_ACCOUNT_NAME" \
-    --consumption-plan-location "$AZURE_LOCATION" \
+    --plan "$APP_PLAN" \
     --name "$FUNCTION_APP_NAME" \
     --os-type "$RUNTIME_OS" \
     --runtime "$RUNTIME_FUNCTION" \
     --runtime-version "$RUNTIME_VERSION" \
     --functions-version 4 \
-    --tags "$TAGS"
+    --tags "$TAGS" \
+    --settings "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+
+# Activation of SCM Basic Auth Publishing Credentials
+echo "Activation of SCM Basic Auth..."
+az resource update \
+    --resource-group "$RESOURCE_GROUP" \
+    --name scm \
+    --namespace Microsoft.Web \
+    --resource-type basicPublishingCredentialsPolicies \
+    --parent "sites/$FUNCTION_APP_NAME" \
+    --set properties.allow=true
+
+# Preparation of the source code
+echo "Preparing the function files..."
+cat << 'EOF' > function_app.py
+import azure.functions as func
+import json
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+@app.route(route="hello")
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    response = {
+        "message": "Hello from AzureTech !",
+        "service": "Azure Functions (Serverless)",
+        "runtime": "Python 3.11",
+        "trigger": "HTTP"
+    }
+    return func.HttpResponse(
+        json.dumps(response),
+        mimetype="application/json",
+        status_code=200
+    )
+EOF
+
+cat << 'EOF' > host.json
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cat << 'EOF' > requirements.txt
+azure-functions
+EOF
+
+# Using Python to create a compatible ZIP file with all 3 files
+echo "Compressing files into deploy-function-app.zip via Python..."
+python -c "
+import zipfile
+with zipfile.ZipFile('deploy-function-app.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+    z.write('function_app.py')
+    z.write('host.json')
+    z.write('requirements.txt')
+"
+
+# Deployment of the zip archive
+echo "Deploying the code to Azure..."
+MSYS_NO_PATHCONV=1 az functionapp deployment source config-zip \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$FUNCTION_APP_NAME" \
+    --src "deploy-function-app.zip"
+
+# Local cleanup
+echo "Cleaning up local temporary files..."
+rm -f function_app.py host.json requirements.txt deploy-function-app.zip
 
 echo "========================================================="
 echo " Deployment completed successfully !"
+echo " Your Function App is now live at:"
+echo " https://${FUNCTION_APP_NAME}.azurewebsites.net/api/hello"
 echo "========================================================="

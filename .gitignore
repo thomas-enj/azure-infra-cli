@@ -2,3 +2,7 @@
 index.php
 deploy.zip
 deploy_site/
+function_app.py
+host.json
+requirements.txt
+deploy-function-app.zip
