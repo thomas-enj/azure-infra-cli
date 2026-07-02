@@ -41,6 +41,7 @@ echo "Storage account '$STORAGE_ACCOUNT_NAME' is ready."
 # Fetching the storage connection string
 echo "Fetching storage connection string..."
 STORAGE_CONNECTION=$(az storage account show-connection-string --name "$STORAGE_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP" --query connectionString -o tsv)
+echo "Connection string fetched ✅"
 
 # Retrieving the App Service Plan ID using the exact path
 APP_PLAN=$(az appservice plan show \
