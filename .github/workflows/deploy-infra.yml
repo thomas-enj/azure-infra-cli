@@ -1,0 +1,40 @@
+name: Deploy infrastructure scripts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Make deployment scripts executable
+        run: chmod +x deploy-*.sh
+
+      - name: Deploy VNet
+        run: ./deploy-vnet.sh
+
+      - name: Deploy storage account
+        run: ./deploy-storage-account.sh
+
+      - name: Deploy app service
+        run: ./deploy-app-service.sh
+
+      - name: Deploy function app
+        run: ./deploy-function-app.sh
+
+      - name: Deploy container instance
+        run: ./deploy-container-instance.sh
