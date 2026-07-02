@@ -1,0 +1,46 @@
+name: Code Quality & Security Checks
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  sast-bash:
+    name: Run Semgrep (SAST Security)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config=auto --error
+
+  lint-bash:
+    name: Run ShellCheck (Linter)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+
+  format-bash:
+    name: Run Shfmt (Formatter)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Shfmt
+        uses: mcanilho/shfmt-action@v1
+        with:
+          # -d show differences and return an error if it's not well formatted
+          # -i number of spaces to use for indentation (default is 4)
+          shfmt_args: "-d -i 4"
