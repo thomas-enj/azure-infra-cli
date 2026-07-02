@@ -64,3 +64,78 @@ az network vnet show \
   --resource-group "$RESOURCE_GROUP" \
   --query          "{nom:name, adresses:addressSpace.addressPrefixes, subnets:subnets[].name}" \
   --output         json
+
+echo "========================================================="
+echo "Creation of the Network Security Group : ${NSG_NAME}"
+echo "========================================================="
+
+# Create the Network Security Group (NSG)
+echo "Creating the Network Security Group (NSG) on Azure..."
+az network nsg create \
+  --name           "$NSG_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location       "$AZURE_LOCATION" \
+  --tags           $TAGS
+
+# Show the NSG rules
+echo "Checking the default rules of the NSG '$NSG_NAME'..."
+az network nsg show \
+  --name           "$NSG_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query          "defaultSecurityRules[].{Nom:name, Priorite:priority, Direction:direction, Action:access, Port:destinationPortRange}" \
+  --output         table
+
+# Create a rule to allow inbound HTTP traffic on port 80
+echo "Creating a rule to allow inbound HTTP traffic on port 80 in NSG '$NSG_NAME'..."
+az network nsg rule create \
+  --name                   "Allow-HTTP" \
+  --nsg-name               "$NSG_NAME" \
+  --resource-group         "$RESOURCE_GROUP" \
+  --priority               100 \
+  --direction              Inbound \
+  --access                 Allow \
+  --protocol               Tcp \
+  --source-address-prefix  "*" \
+  --source-port-range      "*" \
+  --destination-address-prefix "*" \
+  --destination-port-range "80" \
+  --description            "Allow inbound HTTP traffic"
+
+# Create a rule to allow inbound HTTPS traffic on port 443
+echo "Creating a rule to allow inbound HTTPS traffic on port 443 in NSG '$NSG_NAME'..."
+az network nsg rule create \
+  --name                   "Allow-HTTPS" \
+  --nsg-name               "$NSG_NAME" \
+  --resource-group         "$RESOURCE_GROUP" \
+  --priority               110 \
+  --direction              Inbound \
+  --access                 Allow \
+  --protocol               Tcp \
+  --source-address-prefix  "*" \
+  --source-port-range      "*" \
+  --destination-address-prefix "*" \
+  --destination-port-range "443" \
+  --description            "Allow inbound HTTPS traffic"
+
+# Creation of a rule to deny all inbound traffic (as a security measure)
+az network nsg rule create \
+  --name                   "Deny-All-Inbound" \
+  --nsg-name               "$NSG_NAME" \
+  --resource-group         "$RESOURCE_GROUP" \
+  --priority               4000 \
+  --direction              Inbound \
+  --access                 Deny \
+  --protocol               "*" \
+  --source-address-prefix  "*" \
+  --source-port-range      "*" \
+  --destination-address-prefix "*" \
+  --destination-port-range "*" \
+  --description            "Deny all inbound traffic"
+
+# Show the NSG rules after adding the new rules
+echo "Checking the rules of the NSG '$NSG_NAME' after adding the new rules..."
+az network nsg rule list \
+  --nsg-name       "$NSG_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query          "[].{Nom:name, Priorite:priority, Direction:direction, Action:access, Port:destinationPortRange}" \
+  --output         table
