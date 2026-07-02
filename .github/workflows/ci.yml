@@ -39,8 +39,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Shfmt
-        uses: mcanilho/shfmt-action@v1
-        with:
+        uses: mfinelli/setup-shfmt@v3
+      - name: Run Shfmt
           # -d show differences and return an error if it's not well formatted
           # -i number of spaces to use for indentation (default is 4)
-          shfmt_args: "-d -i 4"
+        run: "-d -i 4"
