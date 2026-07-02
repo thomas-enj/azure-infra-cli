@@ -38,6 +38,10 @@ until az storage account show --name "$STORAGE_ACCOUNT_NAME" --resource-group "$
 done
 echo "Storage account '$STORAGE_ACCOUNT_NAME' is ready."
 
+# Fetching the storage connection string
+echo "Fetching storage connection string..."
+STORAGE_CONNECTION=$(az storage account show-connection-string --name "$STORAGE_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP" --query connectionString -o tsv)
+
 # Retrieving the App Service Plan ID using the exact path
 APP_PLAN=$(az appservice plan show \
   --name           "$APP_PLAN_NAME" \
@@ -56,8 +60,17 @@ MSYS_NO_PATHCONV=1 az functionapp create \
     --runtime "$RUNTIME_FUNCTION" \
     --runtime-version "$RUNTIME_VERSION" \
     --functions-version 4 \
-    --tags "$TAGS" \
-    --settings "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+    --tags "$TAGS"
+
+# Function App configuration settings
+echo "Configuring application settings on Azure..."
+az functionapp config appsettings set \
+    --name "$FUNCTION_APP_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --settings "AzureWebJobsStorage=$STORAGE_CONNECTION" \
+               "FUNCTIONS_EXTENSION_VERSION=~4" \
+               "FUNCTIONS_WORKER_RUNTIME=python" \
+               "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
 
 # Activation of SCM Basic Auth Publishing Credentials
 echo "Activation of SCM Basic Auth..."
@@ -68,6 +81,9 @@ az resource update \
     --resource-type basicPublishingCredentialsPolicies \
     --parent "sites/$FUNCTION_APP_NAME" \
     --set properties.allow=true
+
+echo "⏳ Waiting 30 seconds for Azure SCM/Kudu container to wake up..."
+sleep 30
 
 # Preparation of the source code
 echo "Preparing the function files..."
