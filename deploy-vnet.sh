@@ -168,3 +168,7 @@ az network vnet subnet list \
   --resource-group "$RESOURCE_GROUP" \
   --query          "[].{Nom:name, Plage:addressPrefix, NSG:networkSecurityGroup.id}" \
   --output         table
+
+echo "========================================================="
+echo " Deployment completed successfully !"
+echo "========================================================="
