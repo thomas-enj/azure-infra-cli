@@ -139,3 +139,32 @@ az network nsg rule list \
   --resource-group "$RESOURCE_GROUP" \
   --query          "[].{Nom:name, Priorite:priority, Direction:direction, Action:access, Port:destinationPortRange}" \
   --output         table
+
+echo "========================================================="
+echo "Association of the NSG '$NSG_NAME' with the subnet 'subnet-frontend' in VNet '$VNET_NAME'"
+echo "========================================================="
+
+# Associate the NSG with the frontend subnet
+echo "Associating the NSG '$NSG_NAME' with the subnet 'subnet-frontend' in VNet '$VNET_NAME'..."
+az network vnet subnet update \
+  --name           "subnet-frontend" \
+  --vnet-name      "$VNET_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --network-security-group "$NSG_NAME"
+
+# Check the association of the NSG with the frontend subnet
+echo "Checking the association of the NSG '$NSG_NAME' with the subnet 'subnet-frontend' in VNet '$VNET_NAME'..."
+az network vnet subnet show \
+  --name           "subnet-frontend" \
+  --vnet-name      "$VNET_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query          "{Subnet:name, NSG:networkSecurityGroup.id}" \
+  --output         json
+
+# Comparing both subnets and their associated NSG
+echo "Comparing both subnets and their associated NSG..."
+az network vnet subnet list \
+  --vnet-name      "$VNET_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query          "[].{Nom:name, Plage:addressPrefix, NSG:networkSecurityGroup.id}" \
+  --output         table
