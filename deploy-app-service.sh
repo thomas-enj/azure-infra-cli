@@ -46,7 +46,7 @@ az resource update \
 
 # Preparation of the source code
 echo "Preparing the index.php file..."
-cat <<'EOF' > index.php
+cat <<'EOF' >index.php
 <?php
 header('Content-Type: application/json');
 echo json_encode([

@@ -46,9 +46,9 @@ echo "Connection string fetched ✅"
 
 # Retrieving the App Service Plan ID using the exact path
 APP_PLAN=$(az appservice plan show \
-    --name           "$APP_PLAN_NAME" \
+    --name "$APP_PLAN_NAME" \
     --resource-group "$RG_SHARED" \
-    --query          "id" -o tsv)
+    --query "id" -o tsv)
 echo "App Service Plan ID: $APP_PLAN"
 
 # Function App creation
@@ -70,9 +70,9 @@ az functionapp config appsettings set \
     --name "$FUNCTION_APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
     --settings "AzureWebJobsStorage=$STORAGE_CONNECTION" \
-               "FUNCTIONS_EXTENSION_VERSION=~4" \
-               "FUNCTIONS_WORKER_RUNTIME=python" \
-               "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
+    "FUNCTIONS_EXTENSION_VERSION=~4" \
+    "FUNCTIONS_WORKER_RUNTIME=python" \
+    "SCM_DO_BUILD_DURING_DEPLOYMENT=true"
 
 # Activation of SCM Basic Auth Publishing Credentials
 echo "Activation of SCM Basic Auth..."
@@ -89,7 +89,7 @@ sleep 30
 
 # Preparation of the source code
 echo "Preparing the function files..."
-cat <<'EOF' > function_app.py
+cat <<'EOF' >function_app.py
 import azure.functions as func
 import json
 
@@ -110,7 +110,7 @@ def hello(req: func.HttpRequest) -> func.HttpResponse:
     )
 EOF
 
-cat <<'EOF' > host.json
+cat <<'EOF' >host.json
 {
   "version": "2.0",
   "logging": {
@@ -128,7 +128,7 @@ cat <<'EOF' > host.json
 }
 EOF
 
-cat <<'EOF' > requirements.txt
+cat <<'EOF' >requirements.txt
 azure-functions
 EOF
 

@@ -20,7 +20,7 @@ echo "Deployment of the Container Instance : ${ACI_NAME}"
 echo "========================================================="
 
 if [ -z "${ACI_DNS_LABEL:-}" ]; then
-  ACI_DNS_LABEL="$ACI_NAME"
+    ACI_DNS_LABEL="$ACI_NAME"
 fi
 
 # Check if the container instance already exists
@@ -43,12 +43,12 @@ az container create \
     --dns-name-label "$ACI_DNS_LABEL"
 
 if [ -n "$TAGS" ]; then
-  echo "Applying tags to the container instance..."
-  az resource tag \
-    --resource-group "$RESOURCE_GROUP" \
-    --name "$ACI_NAME" \
-    --resource-type "Microsoft.ContainerInstance/containerGroups" \
-    --tags "$TAGS"
+    echo "Applying tags to the container instance..."
+    az resource tag \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$ACI_NAME" \
+        --resource-type "Microsoft.ContainerInstance/containerGroups" \
+        --tags "$TAGS"
 fi
 
 # Récupération du nom de domaine complet (FQDN) de l'instance de conteneur
