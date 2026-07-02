@@ -5,9 +5,10 @@ set -e
 # Check whether the variables.env file exists, then retrieve the variables
 if [ -f variables.env ]; then
     echo "Loading variables..."
-    set -a             # Activate automatic export
+    set -a # Activate automatic export
+    # shellcheck source=/dev/null
     source variables.env
-    set +a             # Deactivate automatic export for the rest
+    set +a # Deactivate automatic export for the rest
     echo "Variables loaded!"
 else
     echo "❌ Error: variables.env not found."
@@ -23,23 +24,23 @@ if [ -z "${ACI_DNS_LABEL:-}" ]; then
 fi
 
 # Check if the container instance already exists
-if az container show --name "$ACI_NAME" --resource-group "$RESOURCE_GROUP" > /dev/null 2>&1; then
+if az container show --name "$ACI_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
     echo "✅ Container instance '$ACI_NAME' already exists in resource group '$RESOURCE_GROUP'."
     exit 0
 fi
 
 echo "Creating the container instance on Azure..."
 az container create \
-  --name "$ACI_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --image "$ACI_IMAGE" \
-  --cpu "$ACI_CPU" \
-  --memory "$ACI_MEMORY" \
-  --os-type "$ACI_OS_TYPE" \
-  --restart-policy "$ACI_RESTART_POLICY" \
-  --ip-address "$ACI_IP_ADDRESS" \
-  --ports "$ACI_PORTS" \
-  --dns-name-label "$ACI_DNS_LABEL"
+    --name "$ACI_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --image "$ACI_IMAGE" \
+    --cpu "$ACI_CPU" \
+    --memory "$ACI_MEMORY" \
+    --os-type "$ACI_OS_TYPE" \
+    --restart-policy "$ACI_RESTART_POLICY" \
+    --ip-address "$ACI_IP_ADDRESS" \
+    --ports "$ACI_PORTS" \
+    --dns-name-label "$ACI_DNS_LABEL"
 
 if [ -n "$TAGS" ]; then
   echo "Applying tags to the container instance..."
@@ -47,7 +48,7 @@ if [ -n "$TAGS" ]; then
     --resource-group "$RESOURCE_GROUP" \
     --name "$ACI_NAME" \
     --resource-type "Microsoft.ContainerInstance/containerGroups" \
-    --tags $TAGS
+    --tags "$TAGS"
 fi
 
 # Récupération du nom de domaine complet (FQDN) de l'instance de conteneur

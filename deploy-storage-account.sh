@@ -5,9 +5,10 @@ set -e
 # Check whether the variables.env file exists, then retrieve the variables
 if [ -f variables.env ]; then
     echo "Loading variables..."
-    set -a             # Activate automatic export
+    set -a # Activate automatic export
+    # shellcheck source=/dev/null
     source variables.env
-    set +a             # Deactivate automatic export for the rest
+    set +a # Deactivate automatic export for the rest
     echo "Variables loaded!"
 else
     echo "❌ Error: variables.env not found."
@@ -19,7 +20,7 @@ echo "Deployment of the Storage Account : ${STORAGE_ACCOUNT_NAME}"
 echo "========================================================="
 
 # Check if the storage account already exists
-if az storage account show --name "$STORAGE_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP" > /dev/null 2>&1; then
+if az storage account show --name "$STORAGE_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
     echo "✅ Storage account '$STORAGE_ACCOUNT_NAME' already exists in resource group '$RESOURCE_GROUP'."
     exit 0
 fi

@@ -5,9 +5,10 @@ set -e
 # Check whether the variables.env file exists, then retrieve the variables
 if [ -f variables.env ]; then
     echo "Loading variables..."
-    set -a             # Activate automatic export
+    set -a # Activate automatic export
+    # shellcheck source=/dev/null
     source variables.env
-    set +a             # Deactivate automatic export for the rest
+    set +a # Deactivate automatic export for the rest
     echo "Variables loaded!"
 else
     echo "❌ Error: variables.env not found."
@@ -19,7 +20,7 @@ echo "Deployment of the App Service : ${APP_NAME}"
 echo "========================================================="
 
 # Check if the app service already exists
-if az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" > /dev/null 2>&1; then
+if az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
     echo "✅ App service '$APP_NAME' already exists in resource group '$RESOURCE_GROUP'."
     exit 0
 fi
@@ -45,7 +46,7 @@ az resource update \
 
 # Preparation of the source code
 echo "Preparing the index.php file..."
-cat << 'EOF' > index.php
+cat <<'EOF' > index.php
 <?php
 header('Content-Type: application/json');
 echo json_encode([

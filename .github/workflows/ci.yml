@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Semgrep
         run: |
@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00ca84fe1b3011531a02f98f93462f4836016bc3
 
   format-bash:
     name: Run Shfmt (Formatter)
@@ -36,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Shfmt
-        uses: mfinelli/setup-shfmt@v3
+        uses: mfinelli/setup-shfmt@9463428d09f7a552309197a99f1fae92976be39a
       - name: Run Shfmt
           # -d show differences and return an error if it's not well formatted
           # -i number of spaces to use for indentation (default is 4)
