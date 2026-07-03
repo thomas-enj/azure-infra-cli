@@ -26,7 +26,7 @@ az configure --defaults group="" >/dev/null 2>&1 || true
 if az group show --name "$RESOURCE_GROUP" >/dev/null 2>&1; then
     echo "✅ Resource group '$RESOURCE_GROUP' exists. Proceeding with resource deletion..."
 else
-    echo "❌ Error: Resource group '$RESOURCE_GROUP' does not exist."   
+    echo "❌ Error: Resource group '$RESOURCE_GROUP' does not exist."
     exit 1
 fi
 
