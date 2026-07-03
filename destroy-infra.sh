@@ -36,7 +36,7 @@ TAG_VALUE=$(echo "$TAGS" | cut -d'=' -f2)
 
 echo "Fetching resources to delete..."
 # Safely filter by both Resource Group and Tags
-RESOURCES_TO_DELETE=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.'$TAG_KEY'=='$TAG_VALUE'].id" -o tsv)
+RESOURCES_TO_DELETE=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.\"$TAG_KEY\"=='$TAG_VALUE'].id" -o tsv)
 
 if [ -z "$RESOURCES_TO_DELETE" ]; then
     echo "No resources found with tag '$TAGS' in group '$RESOURCE_GROUP'. Exiting."
@@ -49,7 +49,7 @@ echo "$RESOURCES_TO_DELETE" | xargs -I "{}" az resource delete --ids "{}"
 
 # Verification of the resource deletion
 echo "Verifying the resource deletion..."
-remaining_resources=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.'$TAG_KEY'=='$TAG_VALUE'].id" -o tsv)
+remaining_resources=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.\"$TAG_KEY\"=='$TAG_VALUE'].id" -o tsv)
 
 if [ -z "$remaining_resources" ]; then
     echo "✅ All resources with tag '$TAGS' in resource group '$RESOURCE_GROUP' have been successfully deleted."
