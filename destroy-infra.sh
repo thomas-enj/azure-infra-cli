@@ -35,7 +35,7 @@ fi
 
 # Delete resources in the resource group with the specified tag
 echo "Deleting resources in resource group '$RESOURCE_GROUP' with tag '$TAGS'..."
-az resource list --resource-group "$RESOURCE_GROUP" --tag "$TAGS" --query "[].id" -o tsv | xargs -I {} az resource delete --ids {}
+az resource list --group "$RESOURCE_GROUP" --tag "$TAGS" --query "[].id" -o tsv | xargs -I {} az resource delete --ids {}
 
 # Verification of the resource deletion
 echo "Verifying the resource deletion..."
