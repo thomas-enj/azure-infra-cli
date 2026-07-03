@@ -19,27 +19,38 @@ echo "========================================================="
 echo "Destruction of all resources with the tag ${TAGS} in resource group ${RESOURCE_GROUP}"
 echo "========================================================="
 
+# Clear any default resource groups that might interfere in the runner environment
+az configure --defaults group="" >/dev/null 2>&1 || true
+
 # Check if the resource group exists
 if az group show --name "$RESOURCE_GROUP" >/dev/null 2>&1; then
     echo "✅ Resource group '$RESOURCE_GROUP' exists. Proceeding with resource deletion..."
 else
     echo "❌ Error: Resource group '$RESOURCE_GROUP' does not exist."   
+    exit 1
+fi
 
-    # List the resources in the resource group with the specified tag
-    echo "Listing resources in resource group '$RESOURCE_GROUP' with tag '$TAGS'..."
-    az resource list --resource-group "$RESOURCE_GROUP" --tag "$TAGS" --output table
+# Parse the tag key and value
+TAG_KEY=$(echo "$TAGS" | cut -d'=' -f1)
+TAG_VALUE=$(echo "$TAGS" | cut -d'=' -f2)
 
-    echo "No resources found to delete. Exiting."
+echo "Fetching resources to delete..."
+# Safely filter by both Resource Group and Tags
+RESOURCES_TO_DELETE=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.'$TAG_KEY'=='$TAG_VALUE'].id" -o tsv)
+
+if [ -z "$RESOURCES_TO_DELETE" ]; then
+    echo "No resources found with tag '$TAGS' in group '$RESOURCE_GROUP'. Exiting."
     exit 0
 fi
 
 # Delete resources in the resource group with the specified tag
 echo "Deleting resources in resource group '$RESOURCE_GROUP' with tag '$TAGS'..."
-az resource list --group "$RESOURCE_GROUP" --tag "$TAGS" --query "[].id" -o tsv | xargs -I {} az resource delete --ids {}
+echo "$RESOURCES_TO_DELETE" | xargs -I "{}" az resource delete --ids "{}"
 
 # Verification of the resource deletion
 echo "Verifying the resource deletion..."
-remaining_resources=$(az resource list --resource-group "$RESOURCE_GROUP" --tag "$TAGS" --query "[].id" -o tsv)
+remaining_resources=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.'$TAG_KEY'=='$TAG_VALUE'].id" -o tsv)
+
 if [ -z "$remaining_resources" ]; then
     echo "✅ All resources with tag '$TAGS' in resource group '$RESOURCE_GROUP' have been successfully deleted."
 else
