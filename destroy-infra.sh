@@ -45,7 +45,7 @@ fi
 
 # Delete resources in the resource group with the specified tag (asynchronous)
 echo "Deleting resources in resource group '$RESOURCE_GROUP' with tag '$TAGS' (non-blocking)..."
-echo "$RESOURCES_TO_DELETE" | xargs -I "{}" az resource delete --ids "{}" --no-wait
+echo "$RESOURCES_TO_DELETE" | MSYS_NO_PATHCONV=1 xargs -I "{}" az resource delete --ids "{}" --no-wait
 
 echo "✅ Deletion requests have been successfully submitted to Azure."
 echo "The actual destruction will complete in the background over the next few minutes."
