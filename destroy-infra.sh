@@ -25,7 +25,7 @@ if az group show --name "$RESOURCE_GROUP" >/dev/null 2>&1; then
 else
     echo "❌ Error: Resource group '$RESOURCE_GROUP' does not exist."   
 
-# List the resources in the resource group with the specified tag
+    # List the resources in the resource group with the specified tag
     echo "Listing resources in resource group '$RESOURCE_GROUP' with tag '$TAGS'..."
     az resource list --resource-group "$RESOURCE_GROUP" --tag "$TAGS" --output table
 

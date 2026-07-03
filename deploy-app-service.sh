@@ -26,9 +26,9 @@ if az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" >/dev/nu
 fi
 
 APP_PLAN=$(az appservice plan show \
-    --name           "$APP_PLAN_NAME" \
+    --name "$APP_PLAN_NAME" \
     --resource-group "$RG_SHARED" \
-    --query          "id" -o tsv)
+    --query "id" -o tsv)
 
 # App Service creation
 echo "Creating the Web application on Azure..."

@@ -103,15 +103,20 @@ echo "⏳ Waiting 30 seconds for Azure SCM/Kudu container to wake up..."
 sleep 30
 
 echo "⏳ Waiting for the Function App to be fully running..."
-for i in $(seq 1 20); do
+for count in $(seq 1 20); do
     status=$(az functionapp show --name "$FUNCTION_APP_NAME" --resource-group "$RESOURCE_GROUP" --query "state" -o tsv)
     if [ "$status" = "Running" ]; then
         echo "Function App is running."
         break
     fi
-    echo "Function App state is '$status'. waiting 15 seconds..."
+    echo "Attempt $count/20: Function App state is '$status'. waiting 15 seconds..."
     sleep 15
 done
+
+if [ "$status" != "Running" ]; then
+    echo "❌ Error: Function App did not reach Running state after 20 checks."
+    exit 1
+fi
 
 # Preparation of the source code
 echo "Preparing the function files..."
