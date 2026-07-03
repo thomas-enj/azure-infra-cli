@@ -25,11 +25,16 @@ if az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" >/dev/nu
     exit 0
 fi
 
+APP_PLAN=$(az appservice plan show \
+    --name           "$APP_PLAN_NAME" \
+    --resource-group "$RG_SHARED" \
+    --query          "id" -o tsv)
+
 # App Service creation
 echo "Creating the Web application on Azure..."
-az webapp create \
+MSYS_NO_PATHCONV=1 az webapp create \
     --resource-group "$RESOURCE_GROUP" \
-    --plan "$APP_SERVICE_PLAN" \
+    --plan "$APP_PLAN" \
     --name "$APP_NAME" \
     --runtime "$RUNTIME" \
     --tags "$TAGS"
