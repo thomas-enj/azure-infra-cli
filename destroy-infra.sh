@@ -43,18 +43,9 @@ if [ -z "$RESOURCES_TO_DELETE" ]; then
     exit 0
 fi
 
-# Delete resources in the resource group with the specified tag
-echo "Deleting resources in resource group '$RESOURCE_GROUP' with tag '$TAGS'..."
-echo "$RESOURCES_TO_DELETE" | xargs -I "{}" az resource delete --ids "{}"
+# Delete resources in the resource group with the specified tag (asynchronous)
+echo "Deleting resources in resource group '$RESOURCE_GROUP' with tag '$TAGS' (non-blocking)..."
+echo "$RESOURCES_TO_DELETE" | xargs -I "{}" az resource delete --ids "{}" --no-wait
 
-# Verification of the resource deletion
-echo "Verifying the resource deletion..."
-remaining_resources=$(az resource list --query "[?resourceGroup=='$RESOURCE_GROUP' && tags.\"$TAG_KEY\"=='$TAG_VALUE'].id" -o tsv)
-
-if [ -z "$remaining_resources" ]; then
-    echo "✅ All resources with tag '$TAGS' in resource group '$RESOURCE_GROUP' have been successfully deleted."
-else
-    echo "❌ Error: Some resources with tag '$TAGS' in resource group '$RESOURCE_GROUP' could not be deleted. Remaining resources:"
-    echo "$remaining_resources"
-    exit 1
-fi
+echo "✅ Deletion requests have been successfully submitted to Azure."
+echo "The actual destruction will complete in the background over the next few minutes."
