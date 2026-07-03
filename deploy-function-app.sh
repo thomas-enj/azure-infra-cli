@@ -46,9 +46,24 @@ echo "Connection string fetched ✅"
 
 # Retrieving the App Service Plan ID using the exact path
 APP_PLAN=$(az appservice plan show \
-    --name "$APP_PLAN_NAME" \
+    --name "$APP_SERVICE_PLAN" \
     --resource-group "$RG_SHARED" \
-    --query "id" -o tsv)
+    --query "id" -o tsv || true)
+
+if [ -z "$APP_PLAN" ]; then
+    echo "App Service plan '$APP_SERVICE_PLAN' not found in '$RG_SHARED'. Creating it..."
+    az appservice plan create \
+        --name "$APP_SERVICE_PLAN" \
+        --resource-group "$RG_SHARED" \
+        --location "$AZURE_LOCATION" \
+        --sku B1 \
+        --is-linux
+    APP_PLAN=$(az appservice plan show \
+        --name "$APP_SERVICE_PLAN" \
+        --resource-group "$RG_SHARED" \
+        --query "id" -o tsv)
+fi
+
 echo "App Service Plan ID: $APP_PLAN"
 
 # Function App creation
@@ -86,6 +101,17 @@ az resource update \
 
 echo "⏳ Waiting 30 seconds for Azure SCM/Kudu container to wake up..."
 sleep 30
+
+echo "⏳ Waiting for the Function App to be fully running..."
+for i in $(seq 1 20); do
+    status=$(az functionapp show --name "$FUNCTION_APP_NAME" --resource-group "$RESOURCE_GROUP" --query "state" -o tsv)
+    if [ "$status" = "Running" ]; then
+        echo "Function App is running."
+        break
+    fi
+    echo "Function App state is '$status'. waiting 15 seconds..."
+    sleep 15
+done
 
 # Preparation of the source code
 echo "Preparing the function files..."
@@ -144,10 +170,23 @@ with zipfile.ZipFile('deploy-function-app.zip', 'w', zipfile.ZIP_DEFLATED) as z:
 
 # Deployment of the zip archive
 echo "Deploying the code to Azure..."
-MSYS_NO_PATHCONV=1 az functionapp deployment source config-zip \
-    --resource-group "$RESOURCE_GROUP" \
-    --name "$FUNCTION_APP_NAME" \
-    --src "deploy-function-app.zip"
+RETRY=0
+MAX_RETRIES=3
+until [ "$RETRY" -ge "$MAX_RETRIES" ]; do
+    MSYS_NO_PATHCONV=1 az functionapp deployment source config-zip \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$FUNCTION_APP_NAME" \
+        --src "deploy-function-app.zip" && break
+
+    echo "Warning: deployment attempt $((RETRY + 1)) failed. Waiting 20 seconds before retry..."
+    sleep 20
+    RETRY=$((RETRY + 1))
+done
+
+if [ "$RETRY" -ge "$MAX_RETRIES" ]; then
+    echo "❌ Error: deployment failed after $MAX_RETRIES attempts."
+    exit 1
+fi
 
 # Local cleanup
 echo "Cleaning up local temporary files..."
